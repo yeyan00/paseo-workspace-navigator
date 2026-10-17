@@ -1,0 +1,9 @@
+Workspace Navigator shows your Paseo workspaces in a collapsible host, project and workspace tree. Search by host, project, directory, workspace or branch, then open a workspace on its owning host. It adds a sidebar entry and a separate navigation screen.
+
+Projects with running workspaces appear first by default. The sort menu offers execution end time or name, ascending or descending, and a separate running-first switch. Each project's execution time is the latest reported end time among its workspaces. End times are best-effort status and agent attention timestamps rather than a complete execution history. Projects without a reported time stay last. Creating or opening a project does not change its rank.
+
+Requires Paseo client and daemon 0.11.4 or newer. The plugin uses existing authenticated app connections to query configured online hosts. Only the host serving the plugin needs it installed. That host stores sort, collapse and language preferences shared by its clients. Separate installations keep separate preferences.
+
+The interface supports Chinese and English and a compact phone layout. Desktop and phone-sized browser interactions have been tested with sample data. Native iOS and Android clients and live-daemon integration have not yet been verified. The listing images are labelled sample-data previews.
+
+The plugin reads project, workspace and agent metadata and execution status. It saves its own display preferences through Paseo settings and opens workspaces through app navigation. It does not read conversation bodies or send data to an external service. Offline hosts show only data already loaded in the current screen, and navigation to them is disabled. The plugin does not replace the built-in workspace sidebar.

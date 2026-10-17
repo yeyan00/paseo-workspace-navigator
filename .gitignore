@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.vite/
+test-results/
+playwright-report/
+.playwright-cli/
+preview/*.log
+*.tgz
+.env*
+!.env.example

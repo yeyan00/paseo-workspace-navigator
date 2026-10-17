@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["react", "node"], "lib": ["ES2023", "DOM"] },
+  "include": [
+    "*.config.ts",
+    "preview/**/*.ts",
+    "preview/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ]
+}

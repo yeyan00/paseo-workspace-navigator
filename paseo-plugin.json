@@ -1,0 +1,7 @@
+{
+  "id": "workspace-navigator",
+  "name": "Workspace Navigator",
+  "description": "Find workspaces by host and project, with running-first, execution-time and name sorting.",
+  "media": ["assets/navigator-desktop.png", "assets/navigator-mobile.png"],
+  "requirements": { "paseo": ">=0.11.4" }
+}

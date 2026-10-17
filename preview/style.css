@@ -1,0 +1,16 @@
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+button,
+input {
+  font: inherit;
+}
+*:focus-visible {
+  outline: 2px solid #75b7ff;
+  outline-offset: 2px;
+}
