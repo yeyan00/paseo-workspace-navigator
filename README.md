@@ -55,6 +55,7 @@ npm ci
 npm run check
 npm run test:browser
 npm run check:package
+npm run check:install
 ```
 
 浏览器测试默认使用已安装的 Microsoft Edge；其他环境修改 `playwright.config.ts` 的浏览器 channel。录像依赖 `npx playwright install ffmpeg`。
@@ -64,6 +65,8 @@ npm run preview
 ```
 
 本地预览地址为 `http://127.0.0.1:5178`。预览使用明确标注的示例数据和模拟 SDK，不连接真实 daemon。它运行真实的导航组件、树模型和目录订阅逻辑，但不能替代 Paseo 内的集成验证。
+
+`check:install` 下载固定提交的官方编译器，在没有 `node_modules` 的临时安装目录中编译插件，并验证旧的直接类型导入确实会失败。该检查需要访问 GitHub。
 
 修改后运行 `paseo plugin reload workspace-navigator`，查看日志用 `paseo plugin logs workspace-navigator`。
 

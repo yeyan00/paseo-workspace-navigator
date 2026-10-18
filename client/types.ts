@@ -1,4 +1,4 @@
-import type { PaseoAgent, PaseoProject, PaseoWorkspace } from "@getpaseo/client";
+import type { PaseoAgent, PaseoProject, PaseoWorkspace } from "./paseo-types";
 import type { PluginHostSummary } from "@getpaseo/plugin/client";
 
 export interface HostData {

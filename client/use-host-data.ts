@@ -1,5 +1,5 @@
 import { getPaseoClient, useHosts } from "@getpaseo/plugin/client";
-import type { PaseoApi } from "@getpaseo/client";
+import type { PaseoApi } from "./paseo-types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HostObserver } from "./host-observer";
 import type { HostData } from "./types";

@@ -17,6 +17,7 @@ jobs:
       - run: npx playwright install ffmpeg
       - run: npm run test:browser
       - run: npm run check:package
+      - run: npm run check:install
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

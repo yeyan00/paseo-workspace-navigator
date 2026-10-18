@@ -6,8 +6,8 @@ import type {
   PaseoProject,
   PaseoWorkspace,
   PaseoWorkspaceListResult,
-} from "@getpaseo/client";
-import type { SessionOutboundMessage } from "@getpaseo/protocol/messages";
+  SessionOutboundMessage,
+} from "./paseo-types";
 import type { HostData } from "./types";
 
 const PAGE_SIZE = 200;

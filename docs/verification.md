@@ -19,6 +19,7 @@ The distributable was packed as `paseo-workspace-navigator-0.1.0.tgz`.
 - Settings tests cover defaults, validation and idempotent/rebased collapse operations.
 - Playwright runs on desktop (1280 × 1000) and a touch-enabled phone-sized Chromium context. It covers search, sorting, reload persistence, collapse restoration, cross-host targets, live completion, offline isolation and horizontal overflow.
 - Package check compiles both runtime bundles with host modules external, executes their contribution entries against a simulated host, and checks npm package contents. This is not the full Paseo compiler or daemon runtime.
+- Install regression check downloads the official Paseo compiler at commit `e08389065c65630993e80c27f4c249a0b0423eb7`, reproduces the old direct-type-import failure, and compiles both fixed entries in an isolated checkout without `node_modules`. Client/protocol types are now derived from the host-provided plugin SDK. This validates compilation, not a live daemon installation.
 
 Commands:
 
@@ -26,6 +27,7 @@ Commands:
 npm run check
 npm run test:browser
 npm run check:package
+npm run check:install
 ```
 
 ## Platform matrix

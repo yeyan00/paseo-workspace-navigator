@@ -4,7 +4,7 @@
 
 1. 在真实 Paseo 0.11.4+ daemon 和客户端安装、验证至少两个 Host 的导航及排序。
 2. 手机原生端实测后，在 `docs/verification.md` 写明客户端版本和平台；未测平台保持标注。
-3. 运行 `npm run check`、`npm run test:browser`、`npm run check:package`。
+3. 运行 `npm run check`、`npm run test:browser`、`npm run check:package`、`npm run check:install`。
 4. 更新 README、OVERVIEW 和截图。当前截图来自标注 SAMPLE DATA 的本地预览，不应作为真实 daemon 测试证据。
 5. 提交并推送代码，创建明确的版本 tag，例如 `v0.1.0`。manifest 的 Paseo 要求与实际使用的 SDK 对齐。
 

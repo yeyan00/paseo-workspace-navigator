@@ -1,4 +1,4 @@
-import type { PaseoAgent } from "@getpaseo/client";
+import type { PaseoAgent } from "./paseo-types";
 import { entityKey, hostKey, type Preferences } from "../shared/preferences";
 import type { HostData, HostNode, ProjectNode, WorkspaceNode } from "./types";
 
