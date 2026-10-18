@@ -66,7 +66,7 @@ npm run preview
 
 预览数据及截图必须使用虚构的项目、主机、任务和路径，不能包含私有项目名、用户目录或真实机器路径。
 
-`check:install` 下载固定提交的官方编译器，在没有 `node_modules` 的临时安装目录中编译插件，并验证旧的直接类型导入确实会失败。该检查需要访问 GitHub。
+`check:install` 下载固定提交的官方编译器，在没有 `node_modules` 的临时安装目录中编译插件，并验证旧的直接类型导入确实会失败；随后使用 React Native 自带的 Hermes 编译器，将实际客户端产物编译为字节码，检查原生端 JavaScript 兼容性。该检查需要访问 GitHub。
 
 修改后运行 `paseo plugin reload workspace-navigator`，查看日志用 `paseo plugin logs workspace-navigator`。
 

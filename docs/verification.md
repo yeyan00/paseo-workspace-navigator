@@ -20,6 +20,7 @@ The distributable was packed as `paseo-workspace-navigator-0.1.0.tgz`.
 - Playwright runs on desktop (1280 × 1000) and a touch-enabled phone-sized Chromium context. It covers search, sorting, reload persistence, collapse restoration, cross-host targets, live completion, offline isolation and horizontal overflow.
 - Package check compiles both runtime bundles with host modules external, executes their contribution entries against a simulated host, and checks npm package contents. This is not the full Paseo compiler or daemon runtime.
 - Install regression check downloads the official Paseo compiler at commit `e08389065c65630993e80c27f4c249a0b0423eb7`, reproduces the old direct-type-import failure, and compiles both fixed entries in an isolated checkout without `node_modules`. Client/protocol types are now derived from the host-provided plugin SDK. This validates compilation, not a live daemon installation.
+- Native syntax check compiles that exact official client bundle to bytecode with React Native 0.81.5's Hermes compiler. It reproduced the reported `885:20: Invalid expression encountered` at the bundled observer class. The observer is now a closure-based function and the bundle passes Hermes compilation. This is engine compilation coverage, not native UI/device execution.
 
 Commands:
 

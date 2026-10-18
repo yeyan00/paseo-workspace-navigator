@@ -78,7 +78,7 @@ npm run preview
 
 Open `http://127.0.0.1:5178`. The preview uses fictional sample data and simulated host/settings adapters. It exercises the real UI, tree model, and subscription logic but is not a live-daemon integration test. Keep all preview data and screenshots fictional; do not use private project names, hostnames, user directories, or machine-specific paths.
 
-`check:install` downloads a pinned official compiler revision, reproduces the former direct-type-import error, and compiles the plugin in an isolated checkout without `node_modules`. It requires GitHub access.
+`check:install` downloads a pinned official compiler revision, reproduces the former direct-type-import error, and compiles the plugin in an isolated checkout without `node_modules`. It then compiles the official client bundle to bytecode with React Native's Hermes compiler to check native JavaScript compatibility. It requires GitHub access.
 
 After editing, run `paseo plugin reload workspace-navigator`. Use `paseo plugin logs workspace-navigator` to inspect load errors.
 

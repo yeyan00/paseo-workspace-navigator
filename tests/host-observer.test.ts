@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { OwnedSubscription, PaseoApi, SubscriptionObserver } from "@getpaseo/client";
 import type { SessionOutboundMessage } from "@getpaseo/protocol/messages";
-import { HostObserver } from "../client/host-observer";
+import { createHostObserver } from "../client/host-observer";
 import type { HostData } from "../client/types";
 import { agent, project, workspace } from "./fixtures";
 
@@ -67,7 +67,7 @@ function fixture() {
   const publish = vi.fn((next: Omit<HostData, "host">) => {
     latest = next;
   });
-  const observer = new HostObserver(api, publish);
+  const observer = createHostObserver(api, publish);
   return {
     observer,
     projects,

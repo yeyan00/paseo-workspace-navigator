@@ -12,135 +12,115 @@ import type { HostData } from "./types";
 
 const PAGE_SIZE = 200;
 const MAX_PAGES = 500;
-
 type DirectoryResult<T> = {
   entries: T[];
   pageInfo: { nextCursor: string | null; hasMore: boolean };
 };
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-/** One host owns its listeners. Unmount/retry never disposes the shared Paseo API. */
-export class HostObserver {
-  private stopped = false;
-  private cleanups: (() => void)[] = [];
-  private projectData = new Map<string, PaseoProject>();
-  private workspaceData = new Map<string, PaseoWorkspace>();
-  private agentData = new Map<string, PaseoAgent>();
-  private pending = new Set(["projects", "workspaces", "agents"]);
-  private failures = new Map<string, string>();
-  private projectsReady = false;
+export interface HostObserver {
+  start(): void;
+  stop(): void;
+}
 
-  constructor(
-    private api: PaseoApi,
-    private publish: (data: Omit<HostData, "host">) => void,
-  ) {}
+/** Own subscriptions, not the borrowed API. Avoid classes: Hermes evaluates the bundle directly. */
+export function createHostObserver(
+  api: PaseoApi,
+  publish: (data: Omit<HostData, "host">) => void,
+): HostObserver {
+  let stopped = false;
+  let cleanups: (() => void)[] = [];
+  let projectData = new Map<string, PaseoProject>();
+  let workspaceData = new Map<string, PaseoWorkspace>();
+  let agentData = new Map<string, PaseoAgent>();
+  const pending = new Set(["projects", "workspaces", "agents"]);
+  const failures = new Map<string, string>();
+  let projectsReady = false;
 
-  private emit = () => {
-    if (this.stopped) return;
-    this.publish({
-      projects: [...this.projectData.values()],
-      workspaces: [...this.workspaceData.values()],
-      agents: [...this.agentData.values()],
-      loading: this.pending.size > 0,
-      projectsReady: this.projectsReady,
-      error: this.failures.size ? [...this.failures.values()].join("; ") : null,
-    });
-  };
-
-  start(): void {
-    this.startProjects();
-    void this.startDirectory<PaseoWorkspace, PaseoWorkspaceListResult>({
-      name: "workspaces",
-      list: () => this.api.workspaces.list({ page: { limit: PAGE_SIZE }, subscribe: {} }),
-      page: (cursor) => this.api.workspaces.list({ page: { limit: PAGE_SIZE, cursor } }),
-      key: (workspace) => workspace.id,
-      replace: (items) => {
-        this.workspaceData = items;
-      },
-      update: (event, items) => {
-        if (event.type !== "workspace_update") return;
-        const update = event.payload;
-        if (update.kind === "upsert") items.set(update.workspace.id, update.workspace);
-        else items.delete(update.id);
-      },
-    });
-    void this.startDirectory<PaseoAgent, PaseoAgentListResult>({
-      name: "agents",
-      list: () => this.api.agents.list({ page: { limit: PAGE_SIZE }, subscribe: {} }),
-      page: (cursor) => this.api.agents.list({ page: { limit: PAGE_SIZE, cursor } }),
-      entries: (page) => page.entries.map((entry) => entry.agent),
-      key: (agent) => agent.id,
-      replace: (items) => {
-        this.agentData = items;
-      },
-      update: (event, items) => {
-        if (event.type !== "agent_update") return;
-        const update = event.payload;
-        if (update.kind === "upsert" && !update.agent.archivedAt)
-          items.set(update.agent.id, update.agent);
-        else items.delete(update.kind === "remove" ? update.agentId : update.agent.id);
-      },
+  function emit() {
+    if (stopped) return;
+    publish({
+      projects: [...projectData.values()],
+      workspaces: [...workspaceData.values()],
+      agents: [...agentData.values()],
+      loading: pending.size > 0,
+      projectsReady,
+      error: failures.size ? [...failures.values()].join("; ") : null,
     });
   }
 
-  private startProjects(): void {
+  function fail(name: string, error: unknown) {
+    pending.delete(name);
+    failures.set(name, `${name}: ${message(error)}`);
+    emit();
+  }
+
+  function track(subscription: Pick<OwnedSubscription<unknown>, "release">) {
+    const release = () => {
+      void subscription.release().catch(() => {});
+    };
+    if (stopped) release();
+    else cleanups.push(release);
+  }
+
+  function startProjects() {
     let generation = 0;
     let loading = false;
     let buffered: SessionOutboundMessage[] = [];
     const apply = (event: SessionOutboundMessage) => {
       if (event.type !== "project.update") return;
       if (event.payload.kind === "upsert")
-        this.projectData.set(event.payload.project.projectId, event.payload.project);
-      else this.projectData.delete(event.payload.projectId);
+        projectData.set(event.payload.project.projectId, event.payload.project);
+      else projectData.delete(event.payload.projectId);
     };
     try {
-      const subscription = this.api.observeEvents(["project.update"]);
-      this.track(subscription);
-      this.cleanups.push(
+      const subscription = api.observeEvents(["project.update"]);
+      track(subscription);
+      cleanups.push(
         subscription.subscribe({
           snapshot: () => {
             const current = ++generation;
             loading = true;
             buffered = [];
-            this.pending.add("projects");
-            void this.api.projects
+            pending.add("projects");
+            void api.projects
               .list()
               .then((result) => {
-                if (this.stopped || current !== generation) return;
-                this.projectData = new Map(
+                if (stopped || current !== generation) return;
+                projectData = new Map(
                   result.projects.map((project) => [project.projectId, project]),
                 );
                 for (const update of buffered) apply(update);
                 buffered = [];
                 loading = false;
-                this.projectsReady = true;
-                this.pending.delete("projects");
-                this.failures.delete("projects");
-                this.emit();
+                projectsReady = true;
+                pending.delete("projects");
+                failures.delete("projects");
+                emit();
               })
               .catch((error) => {
-                if (this.stopped || current !== generation) return;
+                if (stopped || current !== generation) return;
                 loading = false;
                 buffered = [];
-                this.fail("projects", error);
+                fail("projects", error);
               });
           },
           update: (event) => {
             if (loading) buffered.push(event);
             else {
               apply(event);
-              this.emit();
+              emit();
             }
           },
-          error: (error) => this.fail("projects", error),
+          error: (error) => fail("projects", error),
         }),
       );
     } catch (error) {
-      this.fail("projects", error);
+      fail("projects", error);
     }
   }
 
-  private async startDirectory<
+  async function startDirectory<
     T,
     Result extends { pageInfo: { nextCursor: string | null; hasMore: boolean } },
   >(options: {
@@ -160,15 +140,15 @@ export class HostObserver {
     let buffered: SessionOutboundMessage[] = [];
     try {
       const first = await options.list();
-      this.track(first.subscription);
-      if (this.stopped) return;
-      this.cleanups.push(
+      track(first.subscription);
+      if (stopped) return;
+      cleanups.push(
         first.subscription.subscribe({
           snapshot: (snapshot) => {
             const current = ++generation;
             loading = true;
             buffered = [];
-            this.pending.add(options.name);
+            pending.add(options.name);
             void (async () => {
               const next = new Map(entries(snapshot).map((item) => [options.key(item), item]));
               let page: Result = snapshot;
@@ -179,25 +159,24 @@ export class HostObserver {
                   throw new Error(`${options.name}: directory is incomplete; retry to refresh`);
                 seen.add(cursor);
                 page = await options.page(cursor);
-                if (this.stopped || current !== generation) return;
+                if (stopped || current !== generation) return;
                 for (const item of entries(page)) next.set(options.key(item), item);
               }
-              if (this.stopped || current !== generation) return;
+              if (stopped || current !== generation) return;
               for (const event of buffered) options.update(event, next);
               buffered = [];
               loading = false;
               items = next;
               options.replace(items);
-              this.pending.delete(options.name);
-              this.failures.delete(options.name);
-              this.emit();
+              pending.delete(options.name);
+              failures.delete(options.name);
+              emit();
             })().catch((error) => {
-              if (this.stopped || current !== generation) return;
-              // Keep the previous complete directory rather than presenting a
-              // truncated first page as the full host.
+              if (stopped || current !== generation) return;
+              // Keep the previous complete directory instead of publishing a truncated page.
               loading = false;
               buffered = [];
-              this.fail(options.name, error);
+              fail(options.name, error);
             });
           },
           update: (event) => {
@@ -205,34 +184,57 @@ export class HostObserver {
             else {
               options.update(event, items);
               options.replace(items);
-              this.emit();
+              emit();
             }
           },
-          error: (error) => this.fail(options.name, error),
+          error: (error) => fail(options.name, error),
         }),
       );
     } catch (error) {
-      this.fail(options.name, error);
+      fail(options.name, error);
     }
   }
 
-  private fail(name: string, error: unknown): void {
-    this.pending.delete(name);
-    this.failures.set(name, `${name}: ${message(error)}`);
-    this.emit();
-  }
-
-  private track(subscription: Pick<OwnedSubscription<unknown>, "release">): void {
-    const release = () => {
-      void subscription.release().catch(() => {});
-    };
-    if (this.stopped) release();
-    else this.cleanups.push(release);
-  }
-
-  stop(): void {
-    this.stopped = true;
-    for (const cleanup of this.cleanups.reverse()) cleanup();
-    this.cleanups = [];
-  }
+  return {
+    start() {
+      startProjects();
+      void startDirectory<PaseoWorkspace, PaseoWorkspaceListResult>({
+        name: "workspaces",
+        list: () => api.workspaces.list({ page: { limit: PAGE_SIZE }, subscribe: {} }),
+        page: (cursor) => api.workspaces.list({ page: { limit: PAGE_SIZE, cursor } }),
+        key: (workspace) => workspace.id,
+        replace: (items) => {
+          workspaceData = items;
+        },
+        update: (event, items) => {
+          if (event.type !== "workspace_update") return;
+          if (event.payload.kind === "upsert")
+            items.set(event.payload.workspace.id, event.payload.workspace);
+          else items.delete(event.payload.id);
+        },
+      });
+      void startDirectory<PaseoAgent, PaseoAgentListResult>({
+        name: "agents",
+        list: () => api.agents.list({ page: { limit: PAGE_SIZE }, subscribe: {} }),
+        page: (cursor) => api.agents.list({ page: { limit: PAGE_SIZE, cursor } }),
+        entries: (page) => page.entries.map((entry) => entry.agent),
+        key: (agent) => agent.id,
+        replace: (items) => {
+          agentData = items;
+        },
+        update: (event, items) => {
+          if (event.type !== "agent_update") return;
+          const update = event.payload;
+          if (update.kind === "upsert" && !update.agent.archivedAt)
+            items.set(update.agent.id, update.agent);
+          else items.delete(update.kind === "remove" ? update.agentId : update.agent.id);
+        },
+      });
+    },
+    stop() {
+      stopped = true;
+      for (const cleanup of cleanups.reverse()) cleanup();
+      cleanups = [];
+    },
+  };
 }

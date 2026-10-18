@@ -1,7 +1,7 @@
 import { getPaseoClient, useHosts } from "@getpaseo/plugin/client";
 import type { PaseoApi } from "./paseo-types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { HostObserver } from "./host-observer";
+import { createHostObserver, type HostObserver } from "./host-observer";
 import type { HostData } from "./types";
 
 export function useHostData() {
@@ -32,7 +32,7 @@ export function useHostData() {
           const api = getPaseoClient(host.serverId);
           if (active.get(host.serverId)?.api === api) continue;
           active.get(host.serverId)?.observer.stop();
-          const observer = new HostObserver(api, (data) =>
+          const observer = createHostObserver(api, (data) =>
             setSnapshots((current) => ({ ...current, [host.serverId]: data })),
           );
           active.set(host.serverId, { api, observer });
