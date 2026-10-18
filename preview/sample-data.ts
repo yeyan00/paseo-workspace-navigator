@@ -10,49 +10,50 @@ import { host, project, workspace } from "../tests/fixtures";
 
 const now = Date.now();
 const ago = (minutes: number) => new Date(now - minutes * 60_000).toISOString();
+// Public screenshots must use fictional data, never a developer's host/project names.
 export const demoHosts: PluginHostSummary[] = [
-  { serverId: "local", label: "本机 · Development", status: "online" },
-  { serverId: "remote", label: "开发服务器 · GPU", status: "online" },
-  { serverId: "offline", label: "测试服务器", status: "offline" },
+  { serverId: "local", label: "Demo Laptop", status: "online" },
+  { serverId: "remote", label: "Demo Server", status: "online" },
+  { serverId: "offline", label: "Demo Sandbox", status: "offline" },
 ];
 const data = [
   host("local", {
     projects: [
-      project("paseo", "paseo"),
-      project("navigator", "workspace-navigator"),
-      project("website", "greenvalley-web"),
-      project("empty", "new-project"),
+      project("paseo", "demo-cli"),
+      project("navigator", "demo-tools"),
+      project("website", "demo-app"),
+      project("empty", "demo-starter"),
     ],
     workspaces: [
       workspace("navigation", "navigator", {
-        name: "Host 分组与项目排序",
+        name: "Add project search",
         status: "running",
         statusEnteredAt: ago(8),
       }),
       workspace("main", "navigator", { name: "main", statusEnteredAt: ago(90) }),
       workspace("login", "paseo", {
-        name: "修复登录回调",
+        name: "Improve help output",
         status: "attention",
         statusEnteredAt: ago(12),
       }),
-      workspace("layout", "website", { name: "首页布局优化", statusEnteredAt: ago(46) }),
+      workspace("layout", "website", { name: "Update sample layout", statusEnteredAt: ago(46) }),
     ],
   }),
   host("remote", {
-    projects: [project("api", "greenvalley-api"), project("paseo", "paseo")],
+    projects: [project("api", "demo-api"), project("paseo", "demo-cli")],
     workspaces: [
       workspace("index", "api", {
-        name: "索引性能优化",
+        name: "Add example endpoint",
         status: "running",
         statusEnteredAt: ago(25),
       }),
       workspace("permission", "api", {
-        name: "数据库迁移",
+        name: "Review sample migration",
         status: "needs_input",
         statusEnteredAt: ago(15),
       }),
       workspace("build", "paseo", {
-        name: "Windows 打包验证",
+        name: "Check demo build",
         status: "failed",
         statusEnteredAt: ago(120),
       }),
@@ -60,6 +61,11 @@ const data = [
   }),
 ];
 const pageInfo = { nextCursor: null, prevCursor: null, hasMore: false };
+for (const entry of data) {
+  if (entry.projects.some((project) => !project.projectDisplayName.startsWith("demo-"))) {
+    throw new Error("Public preview projects must use demo-prefixed fictional names");
+  }
+}
 function channel<T>(get: () => T) {
   const listeners = new Set<SubscriptionObserver<T & { subscriptionId: string }>>();
   return {
@@ -122,7 +128,7 @@ for (const entry of data) {
 export function finishDemoExecution() {
   const entry = data[0];
   const next = workspace("navigation", "navigator", {
-    name: "Host 分组与项目排序",
+    name: "Add project search",
     statusEnteredAt: new Date().toISOString(),
   });
   entry.workspaces = entry.workspaces.map((workspace) =>

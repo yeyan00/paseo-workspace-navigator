@@ -9,6 +9,7 @@
     "url": "https://github.com/yeyan00/paseo-workspace-navigator.git"
   },
   "files": [
+    "README.zh-CN.md",
     "paseo-plugin.json",
     "OVERVIEW.md",
     "index.client.tsx",

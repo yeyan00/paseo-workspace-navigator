@@ -21,6 +21,8 @@ const files = new Set(pack.files.map((file) => file.path));
 for (const required of [
   "paseo-plugin.json",
   "OVERVIEW.md",
+  "README.md",
+  "README.zh-CN.md",
   "index.client.tsx",
   "index.server.ts",
   ...manifest.media,

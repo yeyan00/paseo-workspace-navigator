@@ -23,12 +23,12 @@ test("host tree, configurable sorting, search, persistent collapse and cross-hos
   await expect(page.getByTestId("project-local-navigator")).toBeVisible();
   await expect(page.getByTestId("workspace-local-navigation")).toHaveCount(0);
   const search = page.getByRole("textbox");
-  await search.fill("Host 分组");
+  await search.fill("project search");
   await expect(page.getByTestId("workspace-local-navigation")).toBeVisible();
   await expect(page.getByTestId("project-local-paseo")).toHaveCount(0);
   await page.getByRole("button", { name: "清空搜索" }).click();
   await expect(page.getByTestId("workspace-local-navigation")).toHaveCount(0);
-  await search.fill("Windows");
+  await search.fill("demo build");
   await page.getByTestId("workspace-remote-build").click();
   await expect(page.getByTestId("opened-target")).toHaveText("remote/build");
   expect(errors).toEqual([]);
@@ -55,6 +55,10 @@ test("live execution completion, offline host isolation and search empty state",
 test("preview screenshots and narrow layout remain usable", async ({ page }, testInfo) => {
   await page.goto("/");
   await expect(page.getByTestId("project-local-navigator")).toBeVisible();
+  await page.getByRole("button", { name: "EN", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Workspace Navigator", exact: true }),
+  ).toBeVisible();
   const dimensions = await page.evaluate(() => ({
     width: document.documentElement.clientWidth,
     content: document.documentElement.scrollWidth,

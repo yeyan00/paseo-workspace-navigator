@@ -47,21 +47,21 @@ function App() {
           accessibilityLabel="Finish demo execution"
           onPress={finishDemoExecution}
         >
-          <Text style={{ color: theme.colors.accent, fontSize: 11 }}>模拟执行完成</Text>
+          <Text style={{ color: theme.colors.accent, fontSize: 11 }}>Finish sample run</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Toggle remote connection"
           onPress={disconnectRemote}
         >
-          <Text style={{ color: theme.colors.accent, fontSize: 11 }}>切换远端连接</Text>
+          <Text style={{ color: theme.colors.accent, fontSize: 11 }}>Toggle sample host</Text>
         </Pressable>
         <Text testID="opened-target" style={{ color: theme.colors.foregroundMuted, fontSize: 11 }}>
           {opened}
         </Text>
       </View>
       <NavigatorScreen
-        host={{ id: "local", label: "本机" }}
+        host={{ id: "local", label: "Demo Laptop" }}
         theme={theme}
         layout={{ compact: width < 640, platform: "web" }}
         params={{}}
