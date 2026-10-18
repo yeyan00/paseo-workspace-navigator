@@ -33,14 +33,29 @@ npm run check:install
 
 ## Platform matrix
 
-| Platform                                   | Status                                            |
-| ------------------------------------------ | ------------------------------------------------- |
-| Windows Edge, isolated Web preview         | Automated browser verification                    |
-| Phone-sized touch browser preview          | Automated browser verification, not native mobile |
-| Actual Paseo desktop/Web with live daemons | Not yet verified                                  |
-| iOS native                                 | Not yet verified                                  |
-| Android native                             | Not yet verified                                  |
-| macOS/Linux packaged desktop               | Not yet verified                                  |
+| Platform                                 | Status                                            |
+| ---------------------------------------- | ------------------------------------------------- |
+| Windows Edge, isolated Web preview       | Automated browser verification                    |
+| Phone-sized touch browser preview        | Automated browser verification, not native mobile |
+| Actual Paseo desktop with live host      | Author confirmed installation and opening         |
+| Actual Paseo phone client with live host | Author reported normal operation after Hermes fix |
+| iOS native                               | Not yet verified                                  |
+| Android native                           | Not yet verified                                  |
+| macOS/Linux packaged desktop             | Not yet verified                                  |
+
+### Author-reported live checks
+
+The author confirmed that the plugin installed and its navigation screen opened on
+desktop. They then reported a native mobile loading error, `885:20: Invalid expression
+encountered`, on the earlier `af3a31a` revision. The same error and location were
+reproduced with Hermes. After the fix released in `v0.1.0` (`87f82d9`), the author
+confirmed the phone plugin now operates normally.
+
+These are user-reported live results, not agent-driven device tests. Exact Paseo
+client/daemon versions and the phone OS/version were not recorded. The individual
+native iOS/Android rows therefore remain unverified as a platform matrix. Multi-host
+navigation, settings conflict handling and long-directory cases have automated
+coverage or a procedure below, but no claim of complete live execution is made.
 
 ## Live verification procedure
 

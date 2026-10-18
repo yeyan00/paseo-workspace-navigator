@@ -40,7 +40,7 @@ paseo plugin install "C:\plugins\paseo-workspace-navigator"
 
 ### 手机支持
 
-生产代码使用 React Native、宿主的 FlatList、TextInput 和 Modal，不依赖 DOM、localStorage 或网页侧栏结构。手机使用紧凑布局和宿主弹层。已验证手机尺寸下的 Web 交互；**iOS／Android 原生客户端尚未真机验证**。
+生产代码使用 React Native、宿主的 FlatList、TextInput 和 Modal，不依赖 DOM、localStorage 或网页侧栏结构。手机使用紧凑布局和宿主弹层。桌面和手机尺寸的浏览器交互有自动化验证；作者已确认桌面端安装后可打开，Hermes 兼容修复后手机端正常。尚未记录精确 App 和手机系统版本，**不等于 iOS、Android 均已完整验证**；范围详见[验证记录](docs/verification.md)。
 
 插件新增独立导航页，不替换 Paseo 内置 Workspaces 侧栏。初次加载离线主机时没有缓存；关闭导航页后不会继续订阅数据。不同主机安装的插件各自保存偏好。
 

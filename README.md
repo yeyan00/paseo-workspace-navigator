@@ -46,7 +46,7 @@ The public API does not expose a complete execution-end history, so these are **
 
 ## Mobile and limitations
 
-Production code uses React Native and host-provided FlatList, TextInput, and Modal components, with no DOM or localStorage dependency. Phone layouts use compact rows and the host's modal presentation. Desktop and phone-sized browser interactions are tested; **native iOS and Android have not yet been device-verified**.
+Production code uses React Native and host-provided FlatList, TextInput, and Modal components, with no DOM or localStorage dependency. Phone layouts use compact rows and the host's modal presentation. Desktop and phone-sized browser interactions have automated coverage. The author confirmed opening the installed plugin on desktop and normal operation on their phone after the Hermes compatibility fix. Exact app and phone OS versions were not recorded; **this does not establish coverage of both native iOS and Android**. See the [verification record](docs/verification.md) for scope.
 
 This plugin adds a separate navigation screen rather than replacing the built-in workspace sidebar. An offline host has no data on first load; only data already loaded in the current screen is retained. Closing the screen releases its subscriptions. Separate plugin installations keep separate preferences.
 

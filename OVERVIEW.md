@@ -4,6 +4,6 @@ Projects with running workspaces appear first by default. The sort menu offers e
 
 Requires Paseo client and daemon 0.11.4 or newer. The plugin uses existing authenticated app connections to query configured online hosts. Only the host serving the plugin needs it installed. That host stores sort, collapse and language preferences shared by its clients. Separate installations keep separate preferences.
 
-The interface supports Chinese and English and a compact phone layout. Desktop and phone-sized browser interactions have been tested with sample data. Native iOS and Android clients and live-daemon integration have not yet been verified. The listing images are labelled sample-data previews.
+The interface supports Chinese and English and a compact phone layout. Desktop and phone-sized browser interactions have automated coverage with sample data. The author has confirmed opening the installed plugin on desktop and normal operation on their phone after the mobile compatibility fix. Exact app and phone OS versions were not recorded, and this is not a full iOS and Android test matrix. The listing images use fictional sample data.
 
 The plugin reads project, workspace and agent metadata and execution status. It saves its own display preferences through Paseo settings and opens workspaces through app navigation. It does not read conversation bodies or send data to an external service. Offline hosts show only data already loaded in the current screen, and navigation to them is disabled. The plugin does not replace the built-in workspace sidebar.
