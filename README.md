@@ -7,10 +7,13 @@ A Paseo plugin that organizes workspaces as **Host → Project → Workspace**, 
 ## Features
 
 - Collapsible host and project groups with connection status.
+- Sticky host headers, host labels in compact project rows and the target host shown in action dialogs.
 - Default order: **running first, then latest execution end time**.
 - A sort menu with execution end time or name, ascending or descending, and an independent running-first switch. The same rules apply to projects and workspaces; hosts keep Paseo's configured order.
 - Search hosts, projects, directories, workspaces, and branches. Matches expand temporarily; clearing search restores the saved collapse state.
 - Open a workspace on its owning host using Paseo's native navigation.
+- Create a workspace from a project's always-visible **＋** button. Choose shared project files or, for Git projects, an isolated worktree with optional base ref and branch name.
+- Rename, copy a path or branch, and archive through the workspace **⋯** menu. Project menus also offer creation and path copying.
 - Sort, collapse, and language preferences saved on the plugin host and shared by its clients.
 - English and Chinese, compact phone layouts, and read-only display of previously loaded offline hosts.
 
@@ -36,7 +39,13 @@ paseo plugin install "C:\plugins\paseo-workspace-navigator"
 
 Open **Workspace Navigator** from the sidebar or Command Center. Only the host serving the plugin needs it installed. The page can query other hosts configured and connected in the current client. The plugin host must remain available.
 
-Plugins run as trusted code in the daemon and app. This plugin reads directory and execution metadata, opens workspaces, and saves its own display preferences. It does not read conversation bodies, send prompts, run shell commands, or archive or delete workspaces.
+Plugins run as trusted code in the daemon and app. This plugin reads directory and execution metadata, opens workspaces, saves display preferences, and creates, renames and archives workspaces when requested. Copy actions write to the current client's clipboard. It does not read conversation bodies or send prompts. Creating a worktree asks the daemon to create a branch and working directory; archiving can stop agents and terminals and remove a Paseo-managed worktree directory.
+
+## Workspace management
+
+Create opens the new workspace in Paseo's native interface, where you select a model and start chatting. Directory mode creates a separate workspace sharing existing files. Worktree mode creates an isolated branch and directory. Failed requests retain form input; unchanged creation retries reuse an idempotency key. Successful creation expands the project and clears the search so the new entry is visible.
+
+Archiving requires confirmation. Ordinary project files are retained; a Paseo-managed worktree directory may be cleaned up when it has no other active references. Commit or back up worktree changes before confirming. Write actions are disabled for offline hosts; cached paths and branches can still be copied. Project registration, project settings and project removal are not exposed by this plugin.
 
 ## Sorting
 
@@ -46,7 +55,7 @@ The public API does not expose a complete execution-end history, so these are **
 
 ## Mobile and limitations
 
-Production code uses React Native and host-provided FlatList, TextInput, and Modal components, with no DOM or localStorage dependency. Phone layouts use compact rows and the host's modal presentation. Desktop and phone-sized browser interactions have automated coverage. The author confirmed opening the installed plugin on desktop and normal operation on their phone after the Hermes compatibility fix. Exact app and phone OS versions were not recorded; **this does not establish coverage of both native iOS and Android**. See the [verification record](docs/verification.md) for scope.
+Production code uses React Native and host-provided FlatList, TextInput, and Modal components, with no DOM or localStorage dependency. Phone layouts use compact rows and the host's modal presentation. Desktop and phone-sized browser interactions have automated coverage. The author confirmed the earlier navigation-only version on desktop and phone after the Hermes compatibility fix. The new workspace management actions still need live-client verification. Exact app and phone OS versions were not recorded; **this does not establish coverage of both native iOS and Android**. See the [verification record](docs/verification.md) for scope.
 
 This plugin adds a separate navigation screen rather than replacing the built-in workspace sidebar. An offline host has no data on first load; only data already loaded in the current screen is retained. Closing the screen releases its subscriptions. Separate plugin installations keep separate preferences.
 

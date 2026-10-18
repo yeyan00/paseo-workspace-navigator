@@ -12,6 +12,10 @@ import { createElement } from "react";
 import * as Icons from "lucide-react";
 export { FlatList, ScrollView, TextInput };
 
+export async function copyText(text: string): Promise<void> {
+  await navigator.clipboard.writeText(text);
+}
+
 export function Icon({ name, size = 16, color }: { name: string; size?: number; color?: string }) {
   const Component = (
     Icons as unknown as Record<string, React.ComponentType<{ size: number; color?: string }>>

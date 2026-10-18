@@ -1,7 +1,7 @@
 {
   "name": "paseo-workspace-navigator",
-  "version": "0.1.0",
-  "description": "Browse Paseo workspaces by host and project, with running-first and execution-time sorting.",
+  "version": "0.2.0",
+  "description": "Browse and manage Paseo workspaces by host and project, with configurable execution-time sorting.",
   "type": "module",
   "license": "MIT",
   "repository": {

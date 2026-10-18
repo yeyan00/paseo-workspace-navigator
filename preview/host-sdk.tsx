@@ -28,6 +28,10 @@ export function disconnectRemote() {
   );
   for (const listener of hostListeners) listener();
 }
+export function reorderDemoHosts() {
+  hosts = [...hosts].reverse();
+  for (const listener of hostListeners) listener();
+}
 export function getPaseoClient(serverId: string): PaseoApi {
   const host = hosts.find((host) => host.serverId === serverId);
   if (host?.status !== "online") throw new Error("Host is disconnected");

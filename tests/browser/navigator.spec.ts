@@ -69,3 +69,39 @@ test("preview screenshots and narrow layout remain usable", async ({ page }, tes
     fullPage: true,
   });
 });
+
+test("host ownership survives delayed responses, duplicate project IDs, reorder and reconnect", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const order = () =>
+    page
+      .locator('[data-testid^="host-"], [data-testid^="project-"], [data-testid^="workspace-"]')
+      .evaluateAll((elements) => elements.map((element) => element.getAttribute("data-testid")));
+  const verify = async (ids: string[]) => {
+    await expect(page.getByTestId("workspace-local-login")).toBeVisible();
+    await expect(page.getByTestId("workspace-remote-build")).toBeVisible();
+    const rows = await order();
+    let owner: string | undefined;
+    for (const row of rows) {
+      if (row?.startsWith("host-")) owner = row.slice(5);
+      else
+        expect(row?.startsWith(`project-${owner}-`) || row?.startsWith(`workspace-${owner}-`)).toBe(
+          true,
+        );
+    }
+    expect(rows.filter((row) => row?.startsWith("host-"))).toEqual(ids.map((id) => `host-${id}`));
+  };
+  await verify(["local", "remote", "offline"]);
+  await page.getByRole("button", { name: "Reorder sample hosts", exact: true }).click();
+  await verify(["offline", "remote", "local"]);
+  await page.getByTestId("host-remote").click();
+  await expect(page.getByTestId("project-remote-paseo")).toHaveCount(0);
+  await expect(page.getByTestId("project-local-paseo")).toBeVisible();
+  await page.getByTestId("host-remote").click();
+  await page.getByRole("button", { name: "Toggle remote connection", exact: true }).click();
+  await page.getByRole("button", { name: "Toggle remote connection", exact: true }).click();
+  await verify(["offline", "remote", "local"]);
+  await page.getByRole("button", { name: "Workspace 操作: Check demo build", exact: true }).click();
+  await expect(page.getByTestId("action-host")).toHaveText("Demo Server · remote");
+});

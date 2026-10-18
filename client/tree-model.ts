@@ -111,6 +111,7 @@ export function buildTree(
         name: workspace.name,
         directory: workspace.workspaceDirectory ?? workspace.projectRootPath,
         branch: workspace.gitRuntime?.currentBranch ?? null,
+        kind: workspace.workspaceKind,
         status: running ? "running" : workspace.status,
         finishedAt,
         running,

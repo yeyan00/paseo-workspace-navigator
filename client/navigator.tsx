@@ -10,7 +10,7 @@ export function NavigatorScreen(props: PluginScreenProps) {
 }
 
 function HostNavigator(props: PluginScreenProps) {
-  const { data, retry } = useHostData();
+  const { data, retry, refreshHost } = useHostData();
   const preferences = usePreferences();
   return (
     <NavigatorView
@@ -23,6 +23,7 @@ function HostNavigator(props: PluginScreenProps) {
       preferencesError={preferences.error}
       retryPreferences={preferences.retry}
       refresh={retry}
+      refreshHost={refreshHost}
     />
   );
 }

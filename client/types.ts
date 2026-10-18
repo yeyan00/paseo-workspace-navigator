@@ -19,6 +19,7 @@ export interface WorkspaceNode {
   name: string;
   directory: string;
   branch: string | null;
+  kind: PaseoWorkspace["workspaceKind"];
   status: PaseoWorkspace["status"];
   finishedAt: number;
   running: boolean;

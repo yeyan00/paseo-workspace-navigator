@@ -5,7 +5,8 @@ import { Pressable, Switch, Text, View, type ViewStyle } from "react-native";
 import { buildTree } from "./tree-model";
 import { messages, relativeTime } from "./i18n";
 import type { HostData, HostNode, ProjectNode, WorkspaceNode } from "./types";
-import type { PreferenceChange, Preferences } from "../shared/preferences";
+import { hostKey, type PreferenceChange, type Preferences } from "../shared/preferences";
+import { RowAction, WorkspaceControls, type ActionTarget } from "./workspace-controls";
 
 export interface NavigatorViewProps extends PluginScreenProps {
   data: HostData[];
@@ -16,6 +17,7 @@ export interface NavigatorViewProps extends PluginScreenProps {
   preferencesError: string | null;
   retryPreferences(): void;
   refresh(): void;
+  refreshHost(hostId: string): void;
 }
 
 type Row =
@@ -36,12 +38,15 @@ export function NavigatorView({
   preferencesError,
   retryPreferences,
   refresh,
+  refreshHost,
 }: NavigatorViewProps) {
   const t = messages[preferences.language];
   const c = theme.colors;
   const [query, setQuery] = useState("");
   const [sortOpen, setSortOpen] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
+  const [actionTarget, setActionTarget] = useState<ActionTarget | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30_000);
@@ -50,6 +55,7 @@ export function NavigatorView({
   const tree = useMemo(() => buildTree(data, preferences, query), [data, preferences, query]);
   const searching = query.trim().length > 0;
   const collapsed = new Set(preferences.collapsed);
+  const hostLabels = new Map(data.map((entry) => [entry.host.serverId, entry.host.label]));
   const rows: Row[] = [];
   for (const host of tree) {
     const expanded = searching || !collapsed.has(host.key);
@@ -204,119 +210,159 @@ export function NavigatorView({
       );
     }
     if (item.kind === "project") {
-      const { project, expanded } = item;
+      const { project, expanded, online } = item;
       return (
-        <Pressable
-          testID={`project-${project.hostId}-${project.id}`}
-          accessibilityRole="button"
-          accessibilityLabel={project.name}
-          accessibilityState={{ expanded }}
-          disabled={!ready || searching}
-          onPress={() => toggle(project.key)}
-          style={({ pressed }) => ({
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-            paddingVertical: 13,
-            paddingLeft: 28,
-            paddingRight: 14,
-            borderRadius: 8,
-            backgroundColor: pressed ? c.surface1 : c.surface0,
-          })}
-        >
-          <Icon
-            name={expanded ? "ChevronDown" : "ChevronRight"}
-            size={14}
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Pressable
+            testID={`project-${project.hostId}-${project.id}`}
+            accessibilityRole="button"
+            accessibilityLabel={project.name}
+            accessibilityState={{ expanded }}
+            disabled={!ready || searching}
+            onPress={() => toggle(project.key)}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              paddingVertical: 13,
+              paddingLeft: 28,
+              paddingRight: 0,
+              borderRadius: 8,
+              backgroundColor: pressed ? c.surface1 : c.surface0,
+              flex: 1,
+              minWidth: 0,
+            })}
+          >
+            <Icon
+              name={expanded ? "ChevronDown" : "ChevronRight"}
+              size={14}
+              color={c.foregroundMuted}
+            />
+            <Icon
+              name={project.kind === "git" ? "FolderGit2" : "Folder"}
+              size={18}
+              color={project.running ? c.accent : c.foregroundMuted}
+            />
+            <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+              <Text numberOfLines={1} style={[text, { fontWeight: "600", fontSize: 14 }]}>
+                {project.name}
+              </Text>
+              <Text numberOfLines={1} style={[muted, { fontSize: 11 }]}>
+                {layout.compact
+                  ? `${hostLabels.get(project.hostId) ?? project.hostId} · ${relativeTime(project.finishedAt, now, t)}`
+                  : project.path}
+              </Text>
+            </View>
+            {project.running && !layout.compact && (
+              <Text style={{ color: c.accent, fontSize: 11 }}>{t.running}</Text>
+            )}
+            <Text style={[muted, { fontSize: 11 }]}>{project.totalWorkspaces}</Text>
+            {!layout.compact && (
+              <Text style={[muted, { fontSize: 11, width: 110, textAlign: "right" }]}>
+                {relativeTime(project.finishedAt, now, t)}
+              </Text>
+            )}
+          </Pressable>
+          <RowAction
+            label={`${t.newWorkspace}: ${project.name}`}
+            icon="Plus"
             color={c.foregroundMuted}
+            disabled={!online || !navigation?.openWorkspace}
+            onPress={() => {
+              setActionMessage(null);
+              setActionTarget({ kind: "create", project });
+            }}
           />
-          <Icon
-            name={project.kind === "git" ? "FolderGit2" : "Folder"}
-            size={18}
-            color={project.running ? c.accent : c.foregroundMuted}
+          <RowAction
+            label={`${t.projectMenu}: ${project.name}`}
+            icon="MoreVertical"
+            color={c.foregroundMuted}
+            onPress={() => {
+              setActionMessage(null);
+              setActionTarget({ kind: "project", project });
+            }}
           />
-          <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-            <Text numberOfLines={1} style={[text, { fontWeight: "600", fontSize: 14 }]}>
-              {project.name}
-            </Text>
-            <Text numberOfLines={1} style={[muted, { fontSize: 11 }]}>
-              {layout.compact ? relativeTime(project.finishedAt, now, t) : project.path}
-            </Text>
-          </View>
-          {project.running && <Text style={{ color: c.accent, fontSize: 11 }}>{t.running}</Text>}
-          <Text style={[muted, { fontSize: 11 }]}>{project.totalWorkspaces}</Text>
-          {!layout.compact && (
-            <Text style={[muted, { fontSize: 11, width: 110, textAlign: "right" }]}>
-              {relativeTime(project.finishedAt, now, t)}
-            </Text>
-          )}
-        </Pressable>
+        </View>
       );
     }
     const { workspace, online } = item;
     return (
-      <Pressable
-        testID={`workspace-${workspace.hostId}-${workspace.id}`}
-        accessibilityRole="button"
-        accessibilityLabel={workspace.name}
-        accessibilityHint={workspace.directory}
-        disabled={!online || !navigation?.openWorkspace}
-        onPress={() => {
-          try {
-            setOpenError(null);
-            navigation?.openWorkspace({ workspaceId: workspace.id, serverId: workspace.hostId });
-          } catch (error) {
-            setOpenError(
-              `${t.openFailed}: ${error instanceof Error ? error.message : String(error)}`,
-            );
-          }
-        }}
-        style={({ pressed }) => ({
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 10,
-          paddingVertical: 12,
-          paddingLeft: 64,
-          paddingRight: 14,
-          borderRadius: 8,
-          opacity: online ? 1 : 0.5,
-          backgroundColor: pressed ? c.surface2 : c.surface0,
-        })}
-      >
-        <View
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: 3,
-            backgroundColor: statusColor(workspace.status),
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Pressable
+          testID={`workspace-${workspace.hostId}-${workspace.id}`}
+          accessibilityRole="button"
+          accessibilityLabel={workspace.name}
+          accessibilityHint={workspace.directory}
+          disabled={!online || !navigation?.openWorkspace}
+          onPress={() => {
+            try {
+              setOpenError(null);
+              navigation?.openWorkspace({ workspaceId: workspace.id, serverId: workspace.hostId });
+            } catch (error) {
+              setOpenError(
+                `${t.openFailed}: ${error instanceof Error ? error.message : String(error)}`,
+              );
+            }
           }}
-        />
-        <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-          <Text style={[text, { fontSize: 13 }]} numberOfLines={1}>
-            {workspace.name}
+          style={({ pressed }) => ({
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            paddingVertical: 12,
+            paddingLeft: layout.compact ? 40 : 64,
+            paddingRight: 4,
+            borderRadius: 8,
+            opacity: online ? 1 : 0.5,
+            backgroundColor: pressed ? c.surface2 : c.surface0,
+            flex: 1,
+            minWidth: 0,
+          })}
+        >
+          <View
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: statusColor(workspace.status),
+            }}
+          />
+          <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+            <Text style={[text, { fontSize: 13 }]} numberOfLines={1}>
+              {workspace.name}
+            </Text>
+            {layout.compact ? (
+              <Text style={[muted, { fontSize: 11 }]}>
+                {relativeTime(workspace.finishedAt, now, t)}
+              </Text>
+            ) : (
+              workspace.branch &&
+              workspace.branch !== workspace.name && (
+                <Text numberOfLines={1} style={[muted, { fontSize: 11 }]}>
+                  {workspace.branch}
+                </Text>
+              )
+            )}
+          </View>
+          <Text style={{ color: statusColor(workspace.status), fontSize: 11 }}>
+            {t[workspace.status]}
           </Text>
-          {layout.compact ? (
-            <Text style={[muted, { fontSize: 11 }]}>
+          {!layout.compact && (
+            <Text style={[muted, { fontSize: 11, width: 110, textAlign: "right" }]}>
               {relativeTime(workspace.finishedAt, now, t)}
             </Text>
-          ) : (
-            workspace.branch &&
-            workspace.branch !== workspace.name && (
-              <Text numberOfLines={1} style={[muted, { fontSize: 11 }]}>
-                {workspace.branch}
-              </Text>
-            )
           )}
-        </View>
-        <Text style={{ color: statusColor(workspace.status), fontSize: 11 }}>
-          {t[workspace.status]}
-        </Text>
-        {!layout.compact && (
-          <Text style={[muted, { fontSize: 11, width: 110, textAlign: "right" }]}>
-            {relativeTime(workspace.finishedAt, now, t)}
-          </Text>
-        )}
-        <Icon name="ArrowUpRight" size={13} color={c.foregroundMuted} />
-      </Pressable>
+          <Icon name="ArrowUpRight" size={13} color={c.foregroundMuted} />
+        </Pressable>
+        <RowAction
+          label={`${t.workspaceMenu}: ${workspace.name}`}
+          icon="MoreVertical"
+          color={c.foregroundMuted}
+          onPress={() => {
+            setActionMessage(null);
+            setActionTarget({ kind: "workspace", workspace });
+          }}
+        />
+      </View>
     );
   };
   return (
@@ -446,8 +492,17 @@ export function NavigatorView({
       {!!openError && (
         <Text style={{ color: c.statusDanger, paddingVertical: 8 }}>{openError}</Text>
       )}
+      {!!actionMessage && (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={{ color: c.accent, paddingVertical: 8, fontSize: 12 }}
+        >
+          {actionMessage}
+        </Text>
+      )}
       <FlatList<Row>
         data={rows}
+        stickyHeaderIndices={rows.flatMap((row, index) => (row.kind === "host" ? [index] : []))}
         keyExtractor={(row) => row.key}
         renderItem={renderRow}
         keyboardShouldPersistTaps="handled"
@@ -464,6 +519,37 @@ export function NavigatorView({
           </View>
         }
       />
+      {actionTarget && (
+        <WorkspaceControls
+          key={`${actionTarget.kind}:${"project" in actionTarget ? actionTarget.project.key : actionTarget.workspace.key}`}
+          target={actionTarget}
+          setTarget={setActionTarget}
+          theme={theme}
+          language={preferences.language}
+          hostLabel={hostLabels.get(
+            "project" in actionTarget ? actionTarget.project.hostId : actionTarget.workspace.hostId,
+          )}
+          navigation={navigation}
+          online={data.some(
+            (entry) =>
+              entry.host.serverId ===
+                ("project" in actionTarget
+                  ? actionTarget.project.hostId
+                  : actionTarget.workspace.hostId) && entry.host.status === "online",
+          )}
+          onCreated={(project) => {
+            setQuery("");
+            change({
+              type: "collapseMany",
+              keys: [hostKey(project.hostId), project.key],
+              value: false,
+            });
+            refreshHost(project.hostId);
+          }}
+          onChanged={refreshHost}
+          notify={setActionMessage}
+        />
+      )}
       <Modal
         title={t.sort}
         icon={<Icon name="ArrowDownUp" size={18} color={c.foreground} />}

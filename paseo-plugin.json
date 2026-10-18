@@ -1,7 +1,7 @@
 {
   "id": "workspace-navigator",
   "name": "Workspace Navigator",
-  "description": "Find workspaces by host and project, with running-first, execution-time and name sorting.",
+  "description": "Find, create and manage workspaces by host and project, with configurable sorting.",
   "media": ["assets/navigator-desktop.png", "assets/navigator-mobile.png"],
   "requirements": { "paseo": ">=0.11.4" }
 }

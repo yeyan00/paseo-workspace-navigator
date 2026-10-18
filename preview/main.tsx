@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import { useState } from "react";
 import { Pressable, Text, View, useWindowDimensions } from "react-native";
 import { NavigatorScreen } from "../client/navigator";
-import { disconnectRemote } from "./host-sdk";
+import { disconnectRemote, reorderDemoHosts } from "./host-sdk";
 import { finishDemoExecution } from "./sample-data";
 import type { PluginTheme } from "@getpaseo/plugin";
 import "./style.css";
@@ -48,6 +48,13 @@ function App() {
           onPress={finishDemoExecution}
         >
           <Text style={{ color: theme.colors.accent, fontSize: 11 }}>Finish sample run</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Reorder sample hosts"
+          onPress={reorderDemoHosts}
+        >
+          <Text style={{ color: theme.colors.accent, fontSize: 11 }}>Reorder sample hosts</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
